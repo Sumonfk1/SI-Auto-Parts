@@ -288,9 +288,16 @@ function searchParts() {
       <img src="${p.img}" alt="${p.name}" />
       <h3>${year} ${make} ${model} ${p.name}</h3>
       <p>${p.price}</p>
-      <button onclick="addToCart('${year} ${make} ${model} ${p.name}', '${p.price}')">Add To Cart</button>
+      <button class="add-cart-btn" data-name="${year} ${make} ${model} ${p.name}" data-price="${p.price}">Add To Cart</button>
     </div>`
   ).join('');
+
+  // attach click handlers after rendering
+  grid.querySelectorAll('.add-cart-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      addToCart(this.dataset.name, this.dataset.price);
+    });
+  });
 
   const section = document.getElementById('search-results');
   section.style.display = 'block';
