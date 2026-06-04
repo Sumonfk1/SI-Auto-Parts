@@ -24,8 +24,22 @@
     <li>Contact</li>
   </ul>
 
-  <button class="cart-btn">Cart (0)</button>
+  <button class="cart-btn" id="cart-btn" onclick="toggleCart()">🛒 Cart (<span id="cart-count">0</span>)</button>
 </nav>
+
+<!-- Cart Drawer -->
+<div id="cart-overlay" class="cart-overlay" onclick="toggleCart()"></div>
+<div id="cart-drawer" class="cart-drawer">
+  <div class="cart-header">
+    <h3>Your Cart</h3>
+    <button class="cart-close" onclick="toggleCart()">✕</button>
+  </div>
+  <div id="cart-items" class="cart-items"></div>
+  <div class="cart-footer">
+    <div class="cart-total">Total: <span id="cart-total">$0.00</span></div>
+    <button class="checkout-btn">Checkout</button>
+  </div>
+</div>
 
 <section class="hero">
   <div class="hero-content">
@@ -154,21 +168,21 @@
       <img src="https://images.unsplash.com/photo-1489824904134-891ab64532f1?q=80&w=1200&auto=format&fit=crop" />
       <h3>Honda Civic Front Bumper</h3>
       <p>$249.99</p>
-      <button>Add To Cart</button>
+      <button onclick="addToCart('Honda Civic Front Bumper', '$249.99')">Add To Cart</button>
     </div>
 
     <div class="product-card">
       <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1200&auto=format&fit=crop" />
       <h3>Toyota Camry Headlight</h3>
       <p>$189.99</p>
-      <button>Add To Cart</button>
+      <button onclick="addToCart('Toyota Camry Headlight', '$189.99')">Add To Cart</button>
     </div>
 
     <div class="product-card">
       <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1200&auto=format&fit=crop" />
       <h3>Ford F-150 Fender</h3>
       <p>$199.99</p>
-      <button>Add To Cart</button>
+      <button onclick="addToCart('Ford F-150 Fender', '$199.99')">Add To Cart</button>
     </div>
 
   </div>
@@ -200,6 +214,61 @@ const parts = [
   { name: "Windshield",      price: "$349.99", img: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=600&auto=format&fit=crop" }
 ];
 
+let cart = [];
+
+function addToCart(name, price) {
+  const existing = cart.find(i => i.name === name);
+  if (existing) {
+    existing.qty++;
+  } else {
+    cart.push({ name, price, qty: 1 });
+  }
+  updateCart();
+  // flash the cart button
+  const btn = document.getElementById('cart-btn');
+  btn.classList.add('cart-flash');
+  setTimeout(() => btn.classList.remove('cart-flash'), 500);
+}
+
+function removeFromCart(index) {
+  cart.splice(index, 1);
+  updateCart();
+}
+
+function updateCart() {
+  const count = cart.reduce((s, i) => s + i.qty, 0);
+  document.getElementById('cart-count').textContent = count;
+
+  const itemsEl = document.getElementById('cart-items');
+  if (cart.length === 0) {
+    itemsEl.innerHTML = '<p class="cart-empty">Your cart is empty.</p>';
+  } else {
+    itemsEl.innerHTML = cart.map((item, idx) =>
+      `<div class="cart-item">
+        <div class="cart-item-info">
+          <span class="cart-item-name">${item.name}</span>
+          <span class="cart-item-price">${item.price}</span>
+        </div>
+        <div class="cart-item-actions">
+          <span class="cart-qty">x${item.qty}</span>
+          <button class="remove-btn" onclick="removeFromCart(${idx})">✕</button>
+        </div>
+      </div>`
+    ).join('');
+  }
+
+  const total = cart.reduce((s, i) => {
+    return s + parseFloat(i.price.replace('$', '')) * i.qty;
+  }, 0);
+  document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
+}
+
+function toggleCart() {
+  document.getElementById('cart-drawer').classList.toggle('open');
+  document.getElementById('cart-overlay').classList.toggle('open');
+  updateCart();
+}
+
 function searchParts() {
   const year  = document.getElementById('sel-year').value;
   const make  = document.getElementById('sel-make').value;
@@ -219,7 +288,7 @@ function searchParts() {
       <img src="${p.img}" alt="${p.name}" />
       <h3>${year} ${make} ${model} ${p.name}</h3>
       <p>${p.price}</p>
-      <button>Add To Cart</button>
+      <button onclick="addToCart('${year} ${make} ${model} ${p.name}', '${p.price}')">Add To Cart</button>
     </div>`
   ).join('');
 
